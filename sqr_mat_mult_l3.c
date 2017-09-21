@@ -44,7 +44,7 @@ int main(void) {
    pthread_t thread1, thread2;
    int  iret1, iret2;
 
-   if (readParams.a == NULL || readParams.b == NULL || readParams.c == NULL) {
+   if (readParams.A == NULL || readParams.B == NULL || readParams.C == NULL) {
       fprintf(stderr, "Can't allocate storage\n");
       exit(-1);
    }
