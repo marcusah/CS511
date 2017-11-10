@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#define NUM_THREADS  6
 
 
 
@@ -37,7 +38,8 @@ int main(void) {
    double* x = NULL;
    double* y = NULL;
    int m, n;
-
+   pthread_t threads[NUM_THREADS];
+   pthread_attr_t attr;
    Get_dims(&m, &n);
    A = malloc(m*n*sizeof(double));
    x = malloc(n*sizeof(double));
@@ -54,7 +56,15 @@ int main(void) {
 #  ifdef DEBUG
    Print_vector("x", x, n);
 #  endif
+/*create struct for args*/
 
+struct arg_struct *args = arguments;
+/* Create Pthreads */
+  
+  for(t=0;t<NUM_THREADS;t++) { 
+    pthread_create(&threads[1], &attr,Mat_vect_mult , (void *)args);
+
+}
    Mat_vect_mult(A, x, y, m, n);
 
    Print_vector("y", y, m);
@@ -202,4 +212,5 @@ void *Mat_vect_mult(
    }
    pthread_exit(NULL);
 }  /* Mat_vect_mult */
+
 
