@@ -31,7 +31,14 @@ void Read_vector(char prompt [], double x[], int n);
 void Print_matrix(char title[], double A[], int m, int n);
 void Print_vector(char title[], double y[], int m);
 void *Mat_vect_mult(void *param);
+struct args{
+   double A; /* Matrix A */
+   double x; /* vector x */
+   double y; /* vector y */
+   int m; /*Dem m*/
+   int n; /*Dem n*/
 
+};
 /*-------------------------------------------------------------------*/
 int main(void) {
    double* A = NULL;
@@ -59,14 +66,7 @@ int main(void) {
    Print_vector("x", x, N);
 #  endif
 /*create struct for args*/
-struct args{
-   double A; /* Matrix A */
-   double x; /* vector x */
-   double y; /* vector y */
-   int m; /*Dem m*/
-   int n; /*Dem n*/
 
-};
 
 struct args *data = (struct args *) malloc(sizeof(struct args));
  for(i=0; i<m*n; i++){
