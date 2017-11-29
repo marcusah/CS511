@@ -32,6 +32,7 @@ struct args {
 };
 void Get_dims(int* n_p, int* s_p);
 void *Mat_Mat_mult(void *arguments);
+pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 /*-------------------------------------------------------------------*/
 int main(void) {
@@ -89,9 +90,14 @@ for(t=0;t<NUM_THREADS;t++){
     exit(-1);
     }
 */
-   end = clock();
+  
+   
 }
+for(t=0;t<NUM_THREADS;t++){
+	(void)pthread_join(threads[t], NULL);
 
+}
+end = clock();
    //Mat_Mat_mult(A, B, C, n, s);
 
    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
@@ -156,18 +162,18 @@ void *Mat_Mat_mult(void *arguments) {
 
    int i, j, k, it, jt, kt, beg, fin;
    long tid;
-   double A, B, C;
+   double* A, B, C;
 
    struct args *my_args = (struct args *)arguments; 
    tid = (long) *my_args.threadid;
    beg=tid*(n/NUM_THREADS);
    fin= (tid+1)*(n/NUM_THREADS);
 
-
+if(tid==0){
   for (it = 0; it < n; it+=s) {
 	  for (kt = 0; kt < n; kt+=s) {
 		  for (jt = 0; jt < n; jt+=s) {
-		     for (i = beg; i < fin; i++) {
+		     for (i = it; i < i < MIN(it+374,n/2); i++) {
 			for (k = kt; k < MIN(kt+s-1,n); k++) {
 			   for (j = jt; j < MIN(jt+s-1,n); j++) {
 			      C[i*n+j] += A[i*n+k]*B[j*n+k];
@@ -177,7 +183,11 @@ void *Mat_Mat_mult(void *arguments) {
 		  }
 	  }
   }
- 
-  pthread_exit(NULL);
+}
+
+
+
+else
+ // pthread_exit(NULL);
 } /* Mat_Mat_mult */
 

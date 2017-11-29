@@ -135,8 +135,64 @@ void Get_data1(
 	int Ceiling_log2(int x);
 	int I_recieve(int stage, int my_rank, int* source_ptr);
         int I_send(int stage, int my_rank, int* dest_ptr);
-
-
+	void Send(float a, float b, int n, int dest);
+	void Receive(float* a_prt, float* b_ptr, int* n_ptr, int source);
 
 }/*Get_data1*/
+
+void Get_data2(
+	      float*   a_ptr    /*out*/,
+	      float*   b_ptr    /*out*/,
+	      int*     n_ptr    /*out*/,
+	      int      my_rank  /*in*/){
+	if(my_rank == 0){
+		printf("Enter a, b, and n\n");
+		scanf("%f %f %d",a_ptr, b_ptr, n_ptr);
+	}
+	MPI_Bcast(a_ptr,1,MPI_FLOAT,0,MPI_COMM_WORLD);
+	MPI_Bcast(b_ptr,1,MPI_FLOAT,0,MPI_COMM_WORLD);
+	MPI_Bcast(n_ptr,1,MPI_INT,0,MPI_COMM_WORLD);
+
+
+	
+}/*Get_data2*/
+
+
+int Ceiling_log2(int x){
+	/*This function takes the ceiling of the log base 2 of x.*/ 
+        int k;
+	k = ceil(log(x)/log(2));
+	return k
+}/*Ceiling_log2*/
+
+int I_recieve(int stage, int my_rank, int* source_ptr){
+
+
+}/* I_recieve*/
+
+
+int I_send(int stage, int my_rank, int* dest_ptr){
+
+
+
+
+} /*I_send*/
+
+
+void Send(float a, float b, int n, int dest){
+
+
+
+} /*Send*/
+
+void Receive(float* a_prt, float* b_ptr, int* n_ptr, int source){
+
+
+
+
+}/*Receive*/
+
+
+
+
 
