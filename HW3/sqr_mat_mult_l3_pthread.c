@@ -30,6 +30,9 @@ struct args {
 	double* B;
 	double* C;
 };
+/*declare global variable C*/
+double* C = NULL;
+/*declare functions*/
 void Get_dims(int* n_p, int* s_p);
 void *Mat_Mat_mult(void *arguments);
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
@@ -38,17 +41,17 @@ pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 int main(void) {
    double* A = NULL;
    double* B = NULL;
-   double* C = NULL;
    double c = 0.0;
    int n, i, j, s;
-   clock_t start, end;
-   double cpu_time_used;
+//   clock_t start, end;
+//   double cpu_time_used;
    pthread_t threads[NUM_THREADS];
 
    Get_dims(&n, &s);
    A = malloc(n*n*sizeof(double));
    B = malloc(n*n*sizeof(double));
    C = malloc(n*n*sizeof(double));
+
    if (A == NULL || B == NULL || C == NULL) {
       fprintf(stderr, "Can't allocate storage\n");
       exit(-1);
@@ -72,24 +75,30 @@ int main(void) {
       }
    }
 struct args *mult_args;
- for(i=0;i <sizeof(C)/sizeof(C[0]);i++){
-  mult_args->A[i] = A[i];
-  mult_args->B[i] = B[i];
-  mult_args->C[i] = C[i];
+/*
+ for(i=0;i <n;i++){
+   for(j=0; j<n;j++){
+     mult_args->A[i*n+j] = A[i*n+j];
+     mult_args->B[i*n+j] = B[i*n+j];
+     mult_args->C[i*n+j] = C[i*n+j];
  }
+}*/
+  mult_args->A = A;
+  mult_args->B = B;
+  mult_args->C = C;
   mult_args->n = n;
   mult_args->s = 250;
   mult_args->threadid = 0;
-start = clock();
-int t;
+//start = clock();
+int t,rc;
 for(t=0;t<NUM_THREADS;t++){
 	mult_args->threadid =&t;
-  pthread_create(&threads[t], NULL, Mat_Mat_mult, &mult_args);//rc=
-  /*if (rc){
+  rc = pthread_create(&threads[t], NULL, Mat_Mat_mult, &mult_args);
+  if (rc){
     printf("ERROR; return code from pthread_create() is %d\n", rc);
     exit(-1);
     }
-*/
+
   
    
 }
@@ -97,11 +106,11 @@ for(t=0;t<NUM_THREADS;t++){
 	(void)pthread_join(threads[t], NULL);
 
 }
-end = clock();
+//end = clock();
    //Mat_Mat_mult(A, B, C, n, s);
 
-   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-   printf("The Loop Runtime is %f ", cpu_time_used);
+//   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+//   printf("The Loop Runtime is %f ", cpu_time_used);
 
    for (i = 0; i < n; i++) {
       for (j = 0; j < n; j++) {
@@ -135,7 +144,7 @@ void Get_dims(int*  n_p  /* out */,
       fprintf(stderr, "n must be positive\n");
       exit(-1);
    }
-
+/*
    printf("Enter the cache size for double values\n");
    scanf("%d", s_p);
 
@@ -143,6 +152,8 @@ void Get_dims(int*  n_p  /* out */,
       fprintf(stderr, "s must be positive\n");
       exit(-1);
    }
+
+*/
 }  /* Get_dims */
 
 /*-------------------------------------------------------------------
@@ -160,23 +171,46 @@ void Get_dims(int*  n_p  /* out */,
 
 void *Mat_Mat_mult(void *arguments) {
 
-   int i, j, k, it, jt, kt, beg, fin;
+   int i, j, k, it, jt, kt,my_beg, my_fin, my_n, full_n, s, n;// 
    long tid;
-   double* A, B, C;
+   double* A = NULL;
+   double* B = NULL;
+   double* my_C = NULL;
 
-   struct args *my_args = (struct args *)arguments; 
-   tid = (long) *my_args.threadid;
-   beg=tid*(n/NUM_THREADS);
-   fin= (tid+1)*(n/NUM_THREADS);
+   struct args *my_args;
+   my_args = (struct args *) arguments; 
+   tid = (long) my_args->threadid;
+   my_n = (int) my_args -> n;
+   my_n = my_n/NUM_THREADS*tid;
+   n = my_n;
+   full_n = (int) my_args -> n;
+   s = (int) my_args -> s;
+   A = malloc(n*n*sizeof(double));
+   B = malloc(n*n*sizeof(double));
+   my_C = malloc(n*n*sizeof(double));
+   if (A == NULL || B == NULL || C == NULL) {
+      fprintf(stderr, "Can't allocate storage\n");
+      exit(-1);
+   }
+ for(i=0;i<n;i++){
+    for (j=0;j<full_n;j++){
+    A[i*n+j] = my_args -> A[i*n+j];
+    B[i*n+j] = my_args -> B[i*n+j];
+    my_C[i*full_n+j] = my_args -> C[i*n+j];
+
+    }
+}
+   my_beg=tid*(n/NUM_THREADS);
+   my_fin= (tid+1)*(n/NUM_THREADS);
 
 if(tid==0){
   for (it = 0; it < n; it+=s) {
 	  for (kt = 0; kt < n; kt+=s) {
 		  for (jt = 0; jt < n; jt+=s) {
-		     for (i = it; i < i < MIN(it+374,n/2); i++) {
+		     for (i = it; i < MIN(it+374,n/2); i++) {
 			for (k = kt; k < MIN(kt+s-1,n); k++) {
 			   for (j = jt; j < MIN(jt+s-1,n); j++) {
-			      C[i*n+j] += A[i*n+k]*B[j*n+k];
+			      my_C[i*n+j] += A[i*n+k]*B[j*n+k];
 			   }
 			}
 		     }
@@ -187,7 +221,16 @@ if(tid==0){
 
 
 
-else
- // pthread_exit(NULL);
+//else
+
+pthread_mutex_lock(&mutex1);
+for(i=my_beg; i<my_fin; i++){
+   for (j=0; j<n; j++){
+        C[i*my_n+j] += my_C[i*n+j];
+   }
+}
+pthread_mutex_unlock(&mutex1);
+pthread_exit(NULL);
 } /* Mat_Mat_mult */
+
 

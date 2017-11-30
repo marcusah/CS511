@@ -20,6 +20,9 @@
  *
  */
 #include <stdio.h>
+#ifdef_OPENMP
+   #include<omp.h>
+#endif
 
 /* We'll be using MPI routines, definitions, etc. */
 #include "mpi.h"
@@ -191,6 +194,7 @@ void Receive(float* a_prt, float* b_ptr, int* n_ptr, int source){
 
 
 }/*Receive*/
+
 
 
 

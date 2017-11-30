@@ -18,7 +18,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <omp.h>
+#ifdef_OPENMP
+   #include<omp.h>
+#endif
 
 #define NUM_THREADS 3
 
@@ -151,3 +153,4 @@ void Mat_Mat_mult(
 	  }
   }
 } /* Mat_Mat_mult */
+
