@@ -226,9 +226,10 @@ if(tid==0){
 pthread_mutex_lock(&mutex1);
 for(i=my_beg; i<my_fin; i++){
    for (j=0; j<n; j++){
-        C[i*my_n+j] += my_C[i*n+j];
+        C[i*my_n+j] += my_C[i*my_n+j];
    }
 }
+printf("Thread %f has finished its section.", tid);
 pthread_mutex_unlock(&mutex1);
 pthread_exit(NULL);
 } /* Mat_Mat_mult */
