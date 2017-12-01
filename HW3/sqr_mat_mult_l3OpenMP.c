@@ -18,30 +18,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <pthread.h>
+#include <omp.h>
 
 #define NUM_THREADS 2
 
-struct args {
-	int n;
-	int s;
-	int* threadid;
-};
-/*declare global variables*/
+
+/*declare global variables
 double* A=NULL;
 double* B=NULL;
-double* C = NULL;
+double* C = NULL;*/
 /*declare functions*/
 void Get_dims(int* n_p);
-void *Mat_Mat_mult(void *arguments);
-pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+void Mat_Mat_mult(double A[], double B[], double C[], int n, int s);
 
 /*-------------------------------------------------------------------*/
 int main(void) {
    double* A = NULL;
    double* B = NULL;
+   double* C = NULL;
    double c = 0.0;
-   int n, i, j;
+   int n, i, j, s;
    clock_t start, end;
    double cpu_time_used;
    pthread_t threads[NUM_THREADS];
@@ -73,30 +69,19 @@ int main(void) {
         C[i*n+j] = 0.0;
       }
    }
-struct args *mult_args;
 
-  mult_args->n = n;
-  mult_args->s = 250;
-  mult_args->threadid = 0;
-start = clock();
-int t,rc;
-for(t=0;t<NUM_THREADS;t++){
-	mult_args->threadid =&t;
-  rc = pthread_create(&threads[t], NULL, Mat_Mat_mult, &mult_args);
-  if (rc){
-    printf("ERROR; return code from pthread_create() is %d\n", rc);
-    exit(-1);
-    }
+  s = 250;
  
+
+  start = clock();
+
+//#pragma omp parallel for default(shared) private(<loop iterators>) schedule(static, <block size>) num_threads(<number of threads supported by machine>)
+
+#pragma omp parallel for default(shared) private(i,j,k,it,jt,kt) schedule(static, n/NUM_THREADS) num_threads(NUM_THREADS)
+   Mat_Mat_mult(A, B, C, n, s);
+
    
-}
-/*for(t=0;t<NUM_THREADS;t++){
-	(void)pthread_join(threads[t], NULL);
-
-}*/
-end = clock();
-   //Mat_Mat_mult(A, B, C, n, s);
-
+   end = clock();
    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
    printf("The Loop Runtime is %f ", cpu_time_used);
 
@@ -156,69 +141,31 @@ void Get_dims(int*  n_p  /* out */) {
  */
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-void *Mat_Mat_mult(void *arguments) {
-
-   int i, j, k, it, jt, kt,my_beg, my_fin, my_n, s, n, h,my_tid ;// 
-   long tid;
-   double* my_A = NULL;
-   double* my_B = NULL;
-   double* my_C = NULL;
-
-   struct args *my_args;
-   my_args = (struct args *) arguments; 
-   tid = (long) my_args->threadid;
-   my_tid=(int) tid;
-   n = (int) my_args -> n;
-   my_n = n/NUM_THREADS;
-   
-   s = (int) my_args -> s;
-
-
-   my_beg=tid*(n/NUM_THREADS);
-   my_fin= (tid+1)*(n/NUM_THREADS);
-   my_A = malloc(n*n/NUM_THREADS*sizeof(double));
-   my_B = malloc(n*n/NUM_THREADS*sizeof(double));
-   my_C = malloc(n*n/NUM_THREADS*sizeof(double));
-   h= 0;
-   if(h<my_n){
-      for (i = my_beg; i < my_fin; i++) {
-          for (j = 0; j < my_n; j++) {
-	         my_A[n*h+j] = A[i*n+j];
-	         my_B[n*h+j] = B[i*n+j];
-	         my_C[n*h+j] = C[i*n+j];
-          }
-         h++;
-      }
-   }
-  for (it = 0; it < my_n; it+=s) {
-	  for (kt = 0; kt < my_n; kt+=s) {
-		  for (jt = 0; jt < my_n; jt+=s) {
-		     for (i = it; i < MIN(it+374,n/2); i++) {
+void Mat_Mat_mult(
+                   double  A[]  /* in  */,
+                   double  B[]  /* in  */,
+                   double  C[]  /* out */,
+                   int     n    /* in  */,
+                   int     s    /* in  */) {
+   int i, j, k, it, jt, kt;
+  
+  for (it = 0; it < n; it+=s) {
+	  for (kt = 0; kt < n; kt+=s) {
+		  for (jt = 0; jt < n; jt+=s) {
+		     for (i = it; i < MIN(it+s-1,n); i++) {
 			for (k = kt; k < MIN(kt+s-1,n); k++) {
 			   for (j = jt; j < MIN(jt+s-1,n); j++) {
-			      C[i*n+j] += my_A[i*n+k]*my_B[j*n+k];
+			      C[i*n+j] += A[i*n+k]*B[j*n+k];
 			   }
 			}
 		     }
 		  }
 	  }
   }
-
-pthread_mutex_lock(&mutex1);
-h=0;
-for(i=my_beg; i<my_fin; i++){
-   for (j=0; j<n; j++){
-        C[i*n+j] += my_C[n*h+j];
-   }
-   h++;
-}
-printf("Thread %i has finished its section.", my_tid);
-pthread_mutex_unlock(&mutex1);
-return NULL;
-
    
    
 } /* Mat_Mat_mult */
+
 
 
 
