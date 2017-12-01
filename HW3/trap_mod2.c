@@ -56,8 +56,8 @@ int main(int argc, char** argv) {
 
     /* Find out how many processes are being used */
     MPI_Comm_size(MPI_COMM_WORLD, &p);
-    Get_data1(&a,&b,&n,my_rank,p);
-//    Get_data2(&a,&b,&n,my_rank);
+//    Get_data1(&a,&b,&n,my_rank,p);
+    Get_data2(&a,&b,&n,my_rank);
     h = (b-a)/n;    /* h is the same for all processes */
     local_n = n/p;  /* So is the number of trapezoids */
 

@@ -22,10 +22,10 @@
 #include <stdio.h>
 
 /* We'll be using MPI routines, definitions, etc. */
-#include "mpi.h"
+#include <mpi.h>
 
 
-main(int argc, char** argv) {
+int  main(int argc, char** argv) {
     int         my_rank;   /* My process rank           */
     int         p;         /* The number of processes   */
     float       a = 0.0;   /* Left endpoint             */
@@ -88,6 +88,7 @@ main(int argc, char** argv) {
 
     /* Shut down MPI */
     MPI_Finalize();
+return 0;
 } /*  main  */
 
 
@@ -121,5 +122,6 @@ float f(float x) {
     return_val = x*x;
     return return_val;
 } /* f */
+
 
 
