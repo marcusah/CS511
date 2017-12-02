@@ -20,7 +20,7 @@
 #include <time.h>
 #include <omp.h>
 
-#define NUM_THREADS 2
+#define NUM_THREADS 4
 
 
 /*declare global variables
@@ -38,10 +38,10 @@ int main(void) {
    double* C = NULL;
    double c = 0.0;
    int n, i, j, s;
-   clock_t start, end;
-   double cpu_time_used;
-   pthread_t threads[NUM_THREADS];
-
+   clock_t  start, end;
+   time_t wall_start, wall_end;
+   double cpu_time_used, wall_time_used;
+  
    Get_dims(&n);
    A = malloc(n*n*sizeof(double));
    B = malloc(n*n*sizeof(double));
@@ -71,19 +71,24 @@ int main(void) {
    }
 
   s = 250;
- 
-
-  start = clock();
+  wall_start = time(NULL);
+	   Mat_Mat_mult(A, B, C, n, s);
+ wall_end = time(NULL);
+  
+wall_time_used = wall_end - wall_start; 
+printf("The Loop wall time is %f \n ", wall_time_used);
+start = clock();
+  
 
 //#pragma omp parallel for default(shared) private(<loop iterators>) schedule(static, <block size>) num_threads(<number of threads supported by machine>)
 
-#pragma omp parallel for default(shared) private(i,j,k,it,jt,kt) schedule(static, n/NUM_THREADS) num_threads(NUM_THREADS)
+
    Mat_Mat_mult(A, B, C, n, s);
 
    
    end = clock();
    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-   printf("The Loop Runtime is %f ", cpu_time_used);
+   printf("The Loop Runtime is %f \n ", cpu_time_used);
 
    for (i = 0; i < n; i++) {
       for (j = 0; j < n; j++) {
@@ -91,7 +96,7 @@ int main(void) {
       }
    }
    c = c / (n*n);
-   printf("The average of the matrix is %f ", c);
+   printf("The average of the matrix is %f \n ", c);
    free(A);
    free(B);
    free(C);
@@ -148,7 +153,7 @@ void Mat_Mat_mult(
                    int     n    /* in  */,
                    int     s    /* in  */) {
    int i, j, k, it, jt, kt;
-  
+#pragma omp parallel for default(shared) private(i,j,k,it,jt,kt) schedule(static, n/NUM_THREADS) num_threads(NUM_THREADS)  
   for (it = 0; it < n; it+=s) {
 	  for (kt = 0; kt < n; kt+=s) {
 		  for (jt = 0; jt < n; jt+=s) {

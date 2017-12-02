@@ -20,7 +20,7 @@
  *
  */
 #include <stdio.h>
-
+#include <time.h>
 /* We'll be using MPI routines, definitions, etc. */
 #include <mpi.h>
 
@@ -47,7 +47,12 @@ int main(int argc, char** argv) {
     void Get_data2(float* a_ptr, float* b_ptr, int* n_ptr, int my_rank);
     float Trap(float local_a, float local_b, int local_n,
               float h);    /* Calculate local integral  */
+    
 
+    clock_t  start, end;
+    double cpu_time_used;
+
+    start = clock();
     /* Let the system do what it needs to start up MPI */
     MPI_Init(&argc, &argv);
 
@@ -56,6 +61,8 @@ int main(int argc, char** argv) {
 
     /* Find out how many processes are being used */
     MPI_Comm_size(MPI_COMM_WORLD, &p);
+  
+    printf("There are %i processes.\n ", p);
     Get_data1(&a,&b,&n,my_rank,p);
 //    Get_data2(&a,&b,&n,my_rank);
     h = (b-a)/n;    /* h is the same for all processes */
@@ -91,6 +98,9 @@ int main(int argc, char** argv) {
 
     /* Shut down MPI */
     MPI_Finalize();
+    end=clock();
+   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+   printf("The Loop Runtime is %f \n ", cpu_time_used);
 return 0;
 } /*  main  */
 
@@ -243,11 +253,12 @@ void Get_data1(
     int I_send(int stage, int my_rank, int p, int* dest_ptr);
     void Send(float a, float b, int n, int dest);
     void Receive(float* a_ptr, float* b_ptr, int* n_ptr, int source);
-
+/*
     if (my_rank == 0){
         printf("Enter a, b, and n\n");
         scanf("%f %f %d", a_ptr, b_ptr, n_ptr);
     } 
+*/
     for (stage = 0; stage < Ceiling_log2(p); stage++)
         if (I_receive(stage, my_rank, &source))
             Receive(a_ptr, b_ptr, n_ptr, source);
@@ -271,6 +282,7 @@ void Get_data2(
 
 	
 }/*Get_data2*/
+
 
 
 

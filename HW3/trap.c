@@ -20,7 +20,7 @@
  *
  */
 #include <stdio.h>
-
+#include <time.h>
 /* We'll be using MPI routines, definitions, etc. */
 #include <mpi.h>
 
@@ -45,7 +45,9 @@ int  main(int argc, char** argv) {
 
     float Trap(float local_a, float local_b, int local_n,
               float h);    /* Calculate local integral  */
-
+   clock_t  start, end;
+   double cpu_time_used;
+    start = clock(); 
     /* Let the system do what it needs to start up MPI */
     MPI_Init(&argc, &argv);
 
@@ -54,7 +56,7 @@ int  main(int argc, char** argv) {
 
     /* Find out how many processes are being used */
     MPI_Comm_size(MPI_COMM_WORLD, &p);
-
+   printf("There are %i processes.\n ", p);
     h = (b-a)/n;    /* h is the same for all processes */
     local_n = n/p;  /* So is the number of trapezoids */
 
@@ -88,6 +90,9 @@ int  main(int argc, char** argv) {
 
     /* Shut down MPI */
     MPI_Finalize();
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+   printf("The Loop Runtime is %f \n ", cpu_time_used);
 return 0;
 } /*  main  */
 
@@ -122,6 +127,7 @@ float f(float x) {
     return_val = x*x;
     return return_val;
 } /* f */
+
 
 
 
