@@ -23,7 +23,8 @@ void *sub1(void *t)
   int i; 
   long tid = (long)t;
   double myresult=0.0;
- 
+ /* do some work */
+sleep(1);
 
   /*
   Lock mutex and wait for signal only if count is what is expected.  Note
@@ -40,8 +41,6 @@ void *sub1(void *t)
 	  printf("sub1: thread=%ld Condition variable signal received.",tid);
 	  printf(" count=%d\n",count);
 }
-/* do some work */
-	  sleep(1);
 	  count++;
 	  finalresult += myresult;
 	  printf("sub1: thread=%ld count now equals=%d myresult=%e. Done.\n",
