@@ -30,6 +30,7 @@ void *dotprod(void *arg)
    printf("thread: %ld starting. start=%d end=%d\n",tid,start,end-1);
    for (i=start; i<end ; i++) 
       my_sum += (a[i] * b[i]);
+/*Using a mutex to lock sum, I add my sum to that of the global sum.*/
    pthread_mutex_lock(&mutexdp);
    sum+=my_sum;
    pthread_mutex_unlock(&mutexdp);
