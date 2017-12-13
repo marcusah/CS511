@@ -23,9 +23,9 @@ void *sub1(void *t)
   int i; 
   long tid = (long)t;
   double myresult=0.0;
- /* do some work */
-sleep(1);
 
+  /* do some work */
+  sleep(1);
   /*
   Lock mutex and wait for signal only if count is what is expected.  Note
   that the pthread_cond_wait routine will automatically and atomically
